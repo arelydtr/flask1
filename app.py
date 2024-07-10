@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template
 import joblib
 import numpy as np
+from scikeras.wrappers import KerasRegressor
 
 app = Flask(__name__)
 
