@@ -5,7 +5,7 @@ import numpy as np
 app = Flask(__name__)
 
 # Cargar el modelo
-model = joblib.load('model/pryhouse.pkl')
+model = joblib.load('pryhouse.pkl')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
