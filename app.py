@@ -1,42 +1,49 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template
 import joblib
-import pandas as pd
-import logging
+import numpy as np
 
 app = Flask(__name__)
 
-# Configurar el registro
-logging.basicConfig(level=logging.DEBUG)
+# Cargar el modelo
+model = joblib.load('model/pryhouse.pkl')
 
-# Cargar el modelo entrenado
-model = joblib.load('modelo.pkl')
-app.logger.debug('Modelo cargado correctamente.')
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    prediction_text = None
+    if request.method == 'POST':
+        try:
+            # Obtener los datos del formulario
+            bedrooms = float(request.form['bedrooms'])
+            bathrooms = float(request.form['bathrooms'])
+            sqft_living = float(request.form['sqft_living'])
+            sqft_lot = float(request.form['sqft_lot'])
+            waterfront = float(request.form['waterfront'])
+            view = float(request.form['view'])
+            condition = float(request.form['condition'])
+            grade = float(request.form['grade'])
+            sqft_above = float(request.form['sqft_above'])
+            sqft_basement = float(request.form['sqft_basement'])
+            yr_built = float(request.form['yr_built'])
+            yr_renovated = float(request.form['yr_renovated'])
+            zipcode = float(request.form['zipcode'])
+            lat = float(request.form['lat'])
+            long = float(request.form['long'])
+            sqft_living15 = float(request.form['sqft_living15'])
+            sqft_lot15 = float(request.form['sqft_lot15'])
 
-@app.route('/')
-def home():
-    return render_template('formulario.html')
+            # Crear un array numpy con los datos
+            input_data = np.array([[bedrooms, bathrooms, sqft_living, sqft_lot, waterfront, view, condition, grade, sqft_above, sqft_basement, yr_built, yr_renovated, zipcode, lat, long, sqft_living15, sqft_lot15]])
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        # Obtener los datos enviados en el request
-        abdomen = float(request.form['abdomen'])
-        antena = float(request.form['antena'])
-        
-        # Crear un DataFrame con los datos
-        data_df = pd.DataFrame([[abdomen, antena]], columns=['abdomen', 'antena'])
-        app.logger.debug(f'DataFrame creado: {data_df}')
-        
-        # Realizar predicciones
-        prediction = model.predict(data_df)
-        app.logger.debug(f'Predicción: {prediction[0]}')
-        
-        # Devolver las predicciones como respuesta JSON
-        return jsonify({'categoria': prediction[0]})
-    except Exception as e:
-        app.logger.error(f'Error en la predicción: {str(e)}')
-        return jsonify({'error': str(e)}), 400
+            # Realizar la predicción
+            prediction = model.predict(input_data)
+            result = prediction[0]
+
+            prediction_text = f'Precio de la casa: ${result:.2f}'
+
+        except ValueError:
+            prediction_text = 'Error: Por favor, ingrese valores válidos.'
+
+    return render_template('index.html', prediction_text=prediction_text)
 
 if __name__ == '__main__':
     app.run(debug=True)
-
