@@ -1,109 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Predicción de Precio de Casas</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Predicción del Precio de Casas</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center">Predicción de Precio de Casas</h2>
-        <form method="POST" class="mt-4">
-            <div class="form-group">
-                <label for="bedrooms">Dormitorios:</label>
-                <input type="text" class="form-control" name="bedrooms" required>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <h4 class="text-center mt-4">Predicción del Precio de Casas en King County</h4>
+                <form id="predictionForm" class="mt-2">
+                    <div class="form-group mb-1">
+                        <label for="sqft_living">Metros cuadrados de la casa:</label>
+                        <input type="text" class="form-control" id="sqft_living">
+                    </div>
+                    <div class="form-group mb-1">
+                        <label for="view">Vista:</label>
+                        <input type="text" class="form-control" id="view">
+                    </div>
+                    <div class="form-group mb-1">
+                        <label for="grade">Calidad:</label>
+                        <input type="text" class="form-control" id="grade">
+                    </div>
+                    <div class="form-group mb-1">
+                        <label for="lat">Latitud:</label>
+                        <input type="text" class="form-control" id="lat">
+                    </div>
+                    <div class="form-group mb-1">
+                        <label for="long">Longitud:</label>
+                        <input type="text" class="form-control" id="long">
+                    </div>
+                    <div class="form-group mb-1">
+                        <label for="sqft_living15">Metros cuadrados de la casa en 2015:</label>
+                        <input type="text" class="form-control" id="sqft_living15">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">Predecir</button>
+                </form>
+                <h3 id="result" class="text-center mt-4"></h3>
             </div>
-
-            <div class="form-group">
-                <label for="bathrooms">Baños:</label>
-                <input type="text" class="form-control" name="bathrooms" required>
-            </div>
-
-            <div class="form-group">
-                <label for="sqft_living">Metros Cuadrados de Espacio Habitable:</label>
-                <input type="text" class="form-control" name="sqft_living" required>
-            </div>
-
-            <div class="form-group">
-                <label for="sqft_lot">Metros Cuadrados del Terreno:</label>
-                <input type="text" class="form-control" name="sqft_lot" required>
-            </div>
-
-            <div class="form-group">
-                <label for="waterfront">Frente al Agua:</label>
-                <input type="text" class="form-control" name="waterfront" required>
-            </div>
-
-            <div class="form-group">
-                <label for="view">Vista:</label>
-                <input type="text" class="form-control" name="view" required>
-            </div>
-
-            <div class="form-group">
-                <label for="condition">Condición:</label>
-                <input type="text" class="form-control" name="condition" required>
-            </div>
-
-            <div class="form-group">
-                <label for="grade">Grado:</label>
-                <input type="text" class="form-control" name="grade" required>
-            </div>
-
-            <div class="form-group">
-                <label for="sqft_above">Metros Cuadrados Sobre el Nivel del Suelo:</label>
-                <input type="text" class="form-control" name="sqft_above" required>
-            </div>
-
-            <div class="form-group">
-                <label for="sqft_basement">Metros Cuadrados del Sótano:</label>
-                <input type="text" class="form-control" name="sqft_basement" required>
-            </div>
-
-            <div class="form-group">
-                <label for="yr_built">Año de Construcción:</label>
-                <input type="text" class="form-control" name="yr_built" required>
-            </div>
-
-            <div class="form-group">
-                <label for="yr_renovated">Año de Renovación:</label>
-                <input type="text" class="form-control" name="yr_renovated" required>
-            </div>
-
-            <div class="form-group">
-                <label for="zipcode">Código Postal:</label>
-                <input type="text" class="form-control" name="zipcode" required>
-            </div>
-
-            <div class="form-group">
-                <label for="lat">Latitud:</label>
-                <input type="text" class="form-control" name="lat" required>
-            </div>
-
-            <div class="form-group">
-                <label for="long">Longitud:</label>
-                <input type="text" class="form-control" name="long" required>
-            </div>
-
-            <div class="form-group">
-                <label for="sqft_living15">Metros Cuadrados del Espacio Habitable de los Últimos 15 Años:</label>
-                <input type="text" class="form-control" name="sqft_living15" required>
-            </div>
-
-            <div class="form-group">
-                <label for="sqft_lot15">Metros Cuadrados del Terreno de los Últimos 15 Años:</label>
-                <input type="text" class="form-control" name="sqft_lot15" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block">Predecir</button>
-        </form>
-        {% if prediction_text %}
-            <h3 class="text-center mt-4">{{ prediction_text }}</h3>
-        {% endif %}
+        </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('predictionForm').onsubmit = async (e) => {
+            e.preventDefault();
+
+            const data = {
+                sqft_living: parseFloat(document.getElementById('sqft_living').value),
+                view: parseInt(document.getElementById('view').value),
+                grade: parseInt(document.getElementById('grade').value),
+                lat: parseFloat(document.getElementById('lat').value),
+                long: parseFloat(document.getElementById('long').value),
+                sqft_living15: parseFloat(document.getElementById('sqft_living15').value)
+            };
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+            document.getElementById('result').innerText = `Precio Predicho: $${result.prediction}`;
+        };
+    </script>
 </body>
 </html>
