@@ -1,50 +1,55 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, jsonify, render_template
 import joblib
 import numpy as np
-from scikeras.wrappers import KerasRegressor
 
 app = Flask(__name__)
 
-# Cargar el modelo
-model = joblib.load('pryhouse.pkl')
+# Cargar el modelo entrenado
+model = joblib.load('model_forest.pkl')
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    prediction_text = None
-    if request.method == 'POST':
-        try:
-            # Obtener los datos del formulario
-            bedrooms = float(request.form['bedrooms'])
-            bathrooms = float(request.form['bathrooms'])
-            sqft_living = float(request.form['sqft_living'])
-            sqft_lot = float(request.form['sqft_lot'])
-            waterfront = float(request.form['waterfront'])
-            view = float(request.form['view'])
-            condition = float(request.form['condition'])
-            grade = float(request.form['grade'])
-            sqft_above = float(request.form['sqft_above'])
-            sqft_basement = float(request.form['sqft_basement'])
-            yr_built = float(request.form['yr_built'])
-            yr_renovated = float(request.form['yr_renovated'])
-            zipcode = float(request.form['zipcode'])
-            lat = float(request.form['lat'])
-            long = float(request.form['long'])
-            sqft_living15 = float(request.form['sqft_living15'])
-            sqft_lot15 = float(request.form['sqft_lot15'])
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-            # Crear un array numpy con los datos
-            input_data = np.array([[bedrooms, bathrooms, sqft_living, sqft_lot, waterfront, view, condition, grade, sqft_above, sqft_basement, yr_built, yr_renovated, zipcode, lat, long, sqft_living15, sqft_lot15]])
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json(force=True)
+    features = [
+        data['sqft_living'], data['view'], data['grade'], 
+        data['lat'], data['long'], data['sqft_living15']
+    ]
+    features = np.array(features).reshape(1, -1)
+    prediction = model.predict(features)
+    return jsonify({'prediction': prediction[0]})
 
-            # Realizar la predicción
-            prediction = model.predict(input_data)
-            result = prediction[0]
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    # Cargar datos para el cálculo de métricas
+    url = "https://raw.githubusercontent.com/arelydtr/PryectoMes2/main/kc_house.csv"
+    data = pd.read_csv(url)
+    data['date'] = pd.to_datetime(data['date']).astype('int64') // 10**9  # Convertir fecha a segundos desde la época
 
-            prediction_text = f'Precio de la casa: ${result:.2f}'
+    X = data.drop(['price', 'id'], axis=1)
+    Y = data['price']
 
-        except ValueError:
-            prediction_text = 'Error: Por favor, ingrese valores válidos.'
-
-    return render_template('index.html', prediction_text=prediction_text)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, Y, test_size=0.2, random_state=42)
+    
+    y_pred = model.predict(X_test)
+    
+    mae = mean_absolute_error(y_test, y_pred)
+    mse = mean_squared_error(y_test, y_pred)
+    rmse = np.sqrt(mse)
+    r2 = r2_score(y_test, y_pred)
+    
+    return jsonify({
+        'MAE': mae,
+        'MSE': mse,
+        'RMSE': rmse,
+        'R^2': r2
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
